@@ -1,17 +1,61 @@
 <script setup lang="ts">
+  interface Post {
+    id: string
+    username: string
+    content: string
+    post_url: string
+    indexed_at: Date
+    attachments: Attachment[]
+  }
+
+  interface Attachment {
+    id: string
+    url: string
+    description: string
+  }
+
+  type SearchResults = Post[]
+  type InfiniteScrollStatus = 'ok' | 'empty' | 'loading' | 'error';
+  type InfiniteScrollSide = 'start' | 'end' | 'both';
+
   const search = ref('')
-  const searchResults = ref([])
+  const searchResults: Ref<SearchResults> = ref([])
+  const offset = ref(0)
   const loading = ref(false)
+
 
   // Check for a ?q= query parameter
   const urlParams = new URLSearchParams(window.location.search)
   if (urlParams.has('q')) {
-    search.value = urlParams.get('q')
+    search.value = urlParams.get('q') || ''
     runSearch()
   }
 
-  function runSearch() {
-    loading.value = true
+  async function search_more(options: {
+    side: InfiniteScrollSide;
+    done: (status: InfiniteScrollStatus) => void;
+  }) {
+    offset.value += 50
+    let postCount = searchResults.value.length
+    console.log("Loading more...")
+    await runSearch()
+    if (postCount === searchResults.value.length) {
+      console.log("No more posts to load.")
+      options.done('empty')
+      return
+    }
+    options.done('ok')
+  }
+
+  function new_search() {
+    offset.value = 0
+    searchResults.value = []
+    runSearch()
+  }
+
+  async function runSearch() {
+    if (searchResults.value.length === 0) loading.value = true
+
     if (search.value.length <= 1) {
       searchResults.value = [];
       loading.value = false
@@ -21,10 +65,14 @@
     // Set ?q= query parameter
     window.history.pushState({}, '', '/search?q=' + encodeURIComponent(search.value))
 
-    fetch("http://127.0.0.1:8000/api/search?q=" + encodeURIComponent(search.value))
+    await fetch(window.BASE_URL + "api/search?q=" + encodeURIComponent(search.value) + "&offset=" + offset.value)
     .then((res) => res.json())
     .then((res) => {
-      searchResults.value = res.posts
+      searchResults.value = [...searchResults.value, ...res.posts]
+      // Convert indexed_at to Date
+      searchResults.value.forEach((post) => {
+        post.indexed_at = new Date(post.indexed_at)
+      })
       loading.value = false
     })
   }
@@ -39,10 +87,10 @@
         label="Search"
         single-line
         variant="outlined"
-        @keyup.enter="runSearch"
+        @keyup.enter="new_search"
       >
         <template #append-inner>
-          <v-btn @click="runSearch" prepend-icon="mdi-magnify" height="100%" density="compact">Search</v-btn>
+          <v-btn @click="new_search" prepend-icon="mdi-magnify" height="100%" density="compact">Search</v-btn>
         </template>
       </v-text-field>
     </v-row>
@@ -85,34 +133,39 @@
     <p>Sample of posts matching your global antenna:</p>
     <br />
     <v-row>
-      <v-col v-for="post in searchResults" :key="post.id" cols="12">
-        <v-card>
-          <v-card-title>@{{ post.username }}</v-card-title>
-          <v-card-text>
-            <p style="white-space: pre-line; font-size: 2ex">
-              {{ post.content }}
-            </p>
-          </v-card-text>
-          <v-card-item v-if="post.attachments.length > 0">
-            <v-container fluid>
-              <v-row>
-                <v-col
-                  :key="attachment.id"
-                  v-for="attachment in post.attachments"
-                >
-                  <v-img :src="attachment.url" :width="300" :alt="attachment.description" />
-                </v-col>
-              </v-row>
-            </v-container>
-          </v-card-item>
-          <v-card-actions>
-            <a :href="post.post_url" target="_blank">
-              <v-btn color="primary" prepend-icon="mdi-open-in-new">Open original</v-btn>
-            </a>
-            <small class="align-content-end">Post ID: {{ post.id }}</small>
-          </v-card-actions>
-        </v-card>
-      </v-col>
+      <v-infinite-scroll :items="searchResults" @load="search_more" load-more-text="Loading more...">
+        <template v-for="post in searchResults" :key="post.id">
+          <v-col>
+            <v-card>
+              <v-card-title>@{{ post.username }}</v-card-title>
+              <v-card-text>
+                <p style="white-space: pre-line; font-size: 2ex">
+                  {{ post.content }}
+                </p>
+              </v-card-text>
+              <v-card-item v-if="post.attachments.length > 0">
+                <v-container fluid>
+                  <v-row>
+                    <v-col
+                      :key="attachment.id"
+                      v-for="attachment in post.attachments"
+                    >
+                      <v-img :src="attachment.url" :width="300" :alt="attachment.description" />
+                    </v-col>
+                  </v-row>
+                </v-container>
+              </v-card-item>
+              <v-card-actions>
+                <a :href="post.post_url" target="_blank">
+                  <v-btn color="primary" prepend-icon="mdi-open-in-new">Open original</v-btn>
+                </a>
+                {{ post.indexed_at.toLocaleString() }}
+                <small class="align-content-end">Post ID: {{ post.id }}</small>
+              </v-card-actions>
+            </v-card>
+          </v-col>
+        </template>
+      </v-infinite-scroll>
     </v-row>
   </v-container>
   <v-container v-if="loading">

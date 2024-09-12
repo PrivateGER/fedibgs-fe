@@ -4,6 +4,12 @@
  * Bootstraps Vuetify and other plugins then mounts the App`
  */
 
+declare global {
+  interface Window {
+    BASE_URL: string
+  }
+}
+
 // Plugins
 import { registerPlugins } from '@/plugins'
 

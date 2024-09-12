@@ -8,6 +8,13 @@
         <v-toolbar-title>
           <img style="height: 3ex; justify-content: center; vertical-align: middle; top: -50px" :src="fediverse" /> FediBGS
         </v-toolbar-title>
+
+        <v-toolbar-items>
+          <v-btn to="/">Home</v-btn>
+          <v-btn to="/search">Search</v-btn>
+          <v-btn to="/about">About</v-btn>
+        </v-toolbar-items>
+
       </v-app-bar>
       <router-view />
     </v-main>
