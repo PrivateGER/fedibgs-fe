@@ -1,7 +1,21 @@
 <script setup lang="ts">
 // Accept a Post object as a prop.
 
-import Post from "@/components/props.post.vue";
+interface Post {
+  id: string
+  username: string
+  content: string
+  post_url: string
+  indexed_at: Date
+  attachments: Attachment[]
+  author_id: string
+}
+
+interface Attachment {
+  id: string
+  url: string
+  description: string
+}
 
 const props = defineProps<{
   post: Post

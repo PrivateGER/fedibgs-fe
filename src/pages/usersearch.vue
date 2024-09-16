@@ -5,15 +5,28 @@ const searchResults = ref([])
 
 let debounceTimeout: number | undefined;
 
+interface SearchResult {
+  id: string
+  username: string
+  url: string
+}
+
+interface FormattedResult {
+  id: string
+  username: string
+  url: string
+  instance: string
+  webfinger: string
+}
+
 const prettyfiedResults = computed(() => {
-  let prettyResults = []
+  let prettyResults: FormattedResult[] = []
   if (searchResults.value.length === 0) return []
-  searchResults.value.forEach((result: any) => {
+  searchResults.value.forEach((result: SearchResult) => {
     prettyResults.push({
       id: result.id,
       username: result.username,
       url: result.url,
-      total_posts: result.total_posts,
       instance: new URL(result.url).host,
       webfinger: `@${result.username}@${new URL(result.url).host}`
     })

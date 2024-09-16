@@ -8,6 +8,7 @@
     post_url: string
     indexed_at: Date
     attachments: Attachment[]
+    author_id: string
   }
 
   interface Attachment {

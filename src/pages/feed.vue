@@ -1,7 +1,23 @@
 <script setup lang="ts">
 
+interface Post {
+  id: string
+  username: string
+  content: string
+  post_url: string
+  indexed_at: Date
+  attachments: Attachment[]
+  author_id: string
+}
+
+interface Attachment {
+  id: string
+  url: string
+  description: string
+}
+
 let socket = new WebSocket(window.BASE_URL + "/stream");
-const posts = ref([]);
+const posts = ref<Post[]>([]);
 posts.value = [];
 let maxLookback = 1000;
 

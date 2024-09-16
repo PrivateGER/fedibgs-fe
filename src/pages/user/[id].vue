@@ -1,6 +1,22 @@
 <script setup lang="ts">
+interface Post {
+  id: string
+  username: string
+  content: string
+  post_url: string
+  indexed_at: Date
+  attachments: Attachment[]
+  author_id: string
+}
 
-import Post from "@/components/Post.vue";
+interface Attachment {
+  id: string
+  url: string
+  description: string
+}
+type InfiniteScrollStatus = 'ok' | 'empty' | 'loading' | 'error';
+type InfiniteScrollSide = 'start' | 'end' | 'both';
+
 import { useRoute } from "vue-router";
 
 const offset = ref(0)
@@ -27,12 +43,18 @@ interface User {
 
 async function fetchUser() {
   loading.value = true
+
+  if (route.name !== "/user/[id]" || route.params.id) {
+    console.error("No user ID provided.")
+    return
+  }
+
   await fetch(window.BASE_URL + `/api/author/${route.params.id}?offset=` + offset.value)
     .then(res => res.json())
     .then(data => {
       user.value = data
       // Map posts indexed_at to Date objects
-      data.posts.forEach(post => {
+      data.posts.forEach((post: Post) => {
         post.indexed_at = new Date(post.indexed_at)
       })
       postFeed.value = [...postFeed.value, ...data.posts]
