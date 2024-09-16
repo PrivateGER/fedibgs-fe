@@ -1,4 +1,6 @@
 <script setup lang="ts">
+  import Post from "@/components/Post.vue";
+
   interface Post {
     id: string
     username: string
@@ -22,7 +24,8 @@
   const searchResults: Ref<SearchResults> = ref([])
   const offset = ref(0)
   const loading = ref(false)
-
+  const total_results = ref(0)
+  const searchTime = ref(0)
 
   // Check for a ?q= query parameter
   const urlParams = new URLSearchParams(window.location.search)
@@ -65,7 +68,8 @@
     // Set ?q= query parameter
     window.history.pushState({}, '', '/search?q=' + encodeURIComponent(search.value))
 
-    await fetch(window.BASE_URL + "api/search?q=" + encodeURIComponent(search.value) + "&offset=" + offset.value)
+    let startTime = new Date().getTime()
+    await fetch(window.BASE_URL + "/api/search?q=" + encodeURIComponent(search.value) + "&offset=" + offset.value)
     .then((res) => res.json())
     .then((res) => {
       searchResults.value = [...searchResults.value, ...res.posts]
@@ -73,6 +77,8 @@
       searchResults.value.forEach((post) => {
         post.indexed_at = new Date(post.indexed_at)
       })
+      total_results.value = res.total_result_count
+      searchTime.value = new Date().getTime() - startTime
       loading.value = false
     })
   }
@@ -130,39 +136,13 @@
   </v-container>
 
   <v-container v-if="!loading && searchResults.length > 0">
-    <p>Sample of posts matching your global antenna:</p>
+    <p>Search results<span v-if="searchTime"> (showing {{offset+50}} of {{total_results}} found in {{searchTime}}ms)</span>:</p>
     <br />
     <v-row>
       <v-infinite-scroll :items="searchResults" @load="search_more" load-more-text="Loading more...">
         <template v-for="post in searchResults" :key="post.id">
           <v-col>
-            <v-card>
-              <v-card-title>@{{ post.username }}</v-card-title>
-              <v-card-text>
-                <p style="white-space: pre-line; font-size: 2ex">
-                  {{ post.content }}
-                </p>
-              </v-card-text>
-              <v-card-item v-if="post.attachments.length > 0">
-                <v-container fluid>
-                  <v-row>
-                    <v-col
-                      :key="attachment.id"
-                      v-for="attachment in post.attachments"
-                    >
-                      <v-img :src="attachment.url" :width="300" :alt="attachment.description" />
-                    </v-col>
-                  </v-row>
-                </v-container>
-              </v-card-item>
-              <v-card-actions>
-                <a :href="post.post_url" target="_blank">
-                  <v-btn color="primary" prepend-icon="mdi-open-in-new">Open original</v-btn>
-                </a>
-                {{ post.indexed_at.toLocaleString() }}
-                <small class="align-content-end">Post ID: {{ post.id }}</small>
-              </v-card-actions>
-            </v-card>
+            <Post :post="post" />
           </v-col>
         </template>
       </v-infinite-scroll>

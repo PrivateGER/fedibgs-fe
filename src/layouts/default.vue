@@ -11,8 +11,9 @@
 
         <v-toolbar-items>
           <v-btn to="/">Home</v-btn>
-          <v-btn to="/search">Search</v-btn>
-          <v-btn to="/about">About</v-btn>
+          <v-btn to="/search">Post Search</v-btn>
+          <v-btn to="/usersearch">User Search</v-btn>
+          <v-btn to="/feed">Post Feed</v-btn>
         </v-toolbar-items>
 
       </v-app-bar>
