@@ -1,19 +1,6 @@
 <script setup lang="ts">
-interface Post {
-  id: string
-  username: string
-  content: string
-  post_url: string
-  indexed_at: Date
-  attachments: Attachment[]
-  author_id: string
-}
+import type {Post, User} from "@/typing"
 
-interface Attachment {
-  id: string
-  url: string
-  description: string
-}
 type InfiniteScrollStatus = 'ok' | 'empty' | 'loading' | 'error';
 type InfiniteScrollSide = 'start' | 'end' | 'both';
 
@@ -33,18 +20,12 @@ const userHost = computed(() => {
   return ''
 })
 
-interface User {
-  id: string
-  username: string
-  url: string
-  posts: Post[]
-  total_posts: number
-}
 
 async function fetchUser() {
   loading.value = true
 
-  if (route.name !== "/user/[id]" || route.params.id) {
+  if (route.name !== "/user/[id]" || !route.params.id) {
+
     console.error("No user ID provided.")
     return
   }

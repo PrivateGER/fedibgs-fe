@@ -1,21 +1,5 @@
 <script setup lang="ts">
-  import Post from "@/components/Post.vue";
-
-  interface Post {
-    id: string
-    username: string
-    content: string
-    post_url: string
-    indexed_at: Date
-    attachments: Attachment[]
-    author_id: string
-  }
-
-  interface Attachment {
-    id: string
-    url: string
-    description: string
-  }
+  import type {Post} from "@/typing";
 
   type SearchResults = Post[]
   type InfiniteScrollStatus = 'ok' | 'empty' | 'loading' | 'error';

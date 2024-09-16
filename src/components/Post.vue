@@ -1,21 +1,8 @@
 <script setup lang="ts">
 // Accept a Post object as a prop.
 
-interface Post {
-  id: string
-  username: string
-  content: string
-  post_url: string
-  indexed_at: Date
-  attachments: Attachment[]
-  author_id: string
-}
 
-interface Attachment {
-  id: string
-  url: string
-  description: string
-}
+import type {Post} from "@/typing";
 
 const props = defineProps<{
   post: Post
